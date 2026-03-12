@@ -28,7 +28,7 @@ pipeline {
             steps {
                 script {
                     echo "🔨 Building Docker image..."
-                    sh "docker build -t productservice:latest ."
+                    sh "sudo docker build -t productservice:latest ."
                 }
             }
         }
