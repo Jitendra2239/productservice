@@ -7,7 +7,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    clone("https://github.com/Jitendra2239/productService.git","main")
+                    clone("https://github.com/Jitendra2239/productservice.git","main")
                 }
             }
         }
