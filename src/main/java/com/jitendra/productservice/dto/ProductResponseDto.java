@@ -2,6 +2,7 @@ package com.jitendra.productservice.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -10,7 +11,9 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductRequestDto {
+public class ProductResponseDto {
+
+    private String id;  // ⚠️ change to String if using ObjectId
 
     private String name;
     private String category;
@@ -21,4 +24,12 @@ public class ProductRequestDto {
 
     private Map<String, Object> attributes;
     private List<String> images;
+
+    private boolean active;
+
+    private double rating;
+    private int reviewCount;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

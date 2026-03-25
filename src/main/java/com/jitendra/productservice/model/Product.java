@@ -19,7 +19,7 @@ import java.util.Map;
 public class Product {
 
     @Id
-    private Long id;
+    private String product_id;
     private String name;
     private String category;
     private String brand;

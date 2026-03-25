@@ -1,29 +1,29 @@
 package com.jitendra.productservice.service;
 
+import com.jitendra.productservice.dto.*;
+
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import com.jitendra.productservice.model.Product;
-
 public interface ProductService {
 
-    Product createProduct(Product product) throws ExecutionException, InterruptedException;
+    ProductResponseDto createProduct(ProductRequestDto dto)throws ExecutionException, InterruptedException ;
 
-    Product updateProduct(Long id, Product product);
+    ProductResponseDto getProductById(Long id);
 
-    Product getProductById(Long id);
+    List<ProductResponseDto> getAllProducts();
 
-    List<Product> getAllProducts();
+    List<ProductResponseDto> getByCategory(String category);
 
-    List<Product> getProductsByCategory(String category);
+    List<ProductResponseDto> getByBrand(String brand);
 
-    List<Product> getProductsByBrand(String brand);
+    List<ProductResponseDto> searchByName(String name);
 
-    List<Product> searchProducts(String name);
+    List<ProductResponseDto> getTopRated();
 
-    List<Product> getProductsByPriceRange(double min, double max);
+    List<ProductResponseDto> getActiveProducts();
 
-    List<Product> getTopRatedProducts();
+    ProductResponseDto updateProduct(Long id, ProductRequestDto dto);
 
-    void deactivateProduct(Long id);
+    void deleteProduct(Long id);
 }

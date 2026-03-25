@@ -6,6 +6,9 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import com.jitendra.event.*;
+import com.jitendra.productservice.dto.ProductRequestDto;
+import com.jitendra.productservice.dto.ProductResponseDto;
+import com.jitendra.productservice.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -36,13 +39,13 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
-    public Product createProduct(Product product) throws ExecutionException, InterruptedException {
-
+    public ProductResponseDto  createProduct(ProductRequestDto dto) throws ExecutionException, InterruptedException {
+        Product product = ProductMapper.toEntity(dto);
         if(product.getPrice() <= 0) {
             throw new InvalidProductException("Product price must be greater than zero");
         }
 
-        if(productRepository.findByNameContainingIgnoreCase(product.getName()).size() > 0) {
+        if(!productRepository.findByNameContainingIgnoreCase(product.getName()).isEmpty()) {
             throw new ProductAlreadyExistsException(
                     "Product already exists with name: " + product.getName());
         }
@@ -55,7 +58,7 @@ public class ProductServiceImpl implements ProductService {
         Product productResponse = productRepository.save(product);
 
         ProductCreatedEvent event = new ProductCreatedEvent();
-        event.setProductId(productResponse.getId());
+        event.setProductId(productResponse.getProduct_id());
         event.setName(productResponse.getName());
 
 
@@ -68,127 +71,102 @@ public class ProductServiceImpl implements ProductService {
         InventoryCreatedEvent response= future.get().value();
 
 
-        return productResponse;
+         return ProductMapper.toDto(productRepository.save(product));
     }
 
-    @Override
-    public Product updateProduct(Long id, Product product) {
+        @Override
+        public ProductResponseDto getProductById(Long id) {
 
-        Product existing = productRepository.findById(id)
-                .orElseThrow(() ->
-                        new ProductNotFoundException("Product not found with id: " + id));
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() ->
+                            new ProductNotFoundException("Product not found: " + id));
 
-        if(product.getPrice() <= 0) {
-            throw new InvalidProductException("Invalid product price");
+            return ProductMapper.toDto(product);
         }
 
-        existing.setName(product.getName());
-        existing.setCategory(product.getCategory());
-        existing.setBrand(product.getBrand());
-        existing.setPrice(product.getPrice());
-        existing.setAttributes(product.getAttributes());
+        @Override
+        public List<ProductResponseDto> getAllProducts() {
 
-        return productRepository.save(existing);
-    }
-
-    @Override
-    public Product getProductById(Long id) {
-
-        return productRepository.findById(id)
-                .orElseThrow(() ->
-                        new ProductNotFoundException("Product not found with id: " + id));
-    }
-
-    @Override
-    public List<Product> getAllProducts() {
-
-        List<Product> products = productRepository.findByActiveTrue();
-
-        if(products.isEmpty()) {
-            throw new ProductNotFoundException("No products available");
+            return productRepository.findAll()
+                    .stream()
+                    .map(ProductMapper::toDto)
+                    .toList();
         }
 
-        return products;
-    }
+        @Override
+        public List<ProductResponseDto> getByCategory(String category) {
 
-    @Override
-    public List<Product> getProductsByCategory(String category) {
-
-        List<Product> products = productRepository.findByCategory(category);
-
-        if(products.isEmpty()) {
-            throw new ProductNotFoundException(
-                    "No products found for category: " + category);
+            return productRepository.findByCategory(category)
+                    .stream()
+                    .map(ProductMapper::toDto)
+                    .toList();
         }
 
-        return products;
-    }
+        @Override
+        public List<ProductResponseDto> getByBrand(String brand) {
 
-    @Override
-    public List<Product> getProductsByBrand(String brand) {
-
-        List<Product> products = productRepository.findByBrand(brand);
-
-        if(products.isEmpty()) {
-            throw new ProductNotFoundException(
-                    "No products found for brand: " + brand);
+            return productRepository.findByBrand(brand)
+                    .stream()
+                    .map(ProductMapper::toDto)
+                    .toList();
         }
 
-        return products;
-    }
+        @Override
+        public List<ProductResponseDto> searchByName(String name) {
 
-    @Override
-    public List<Product> searchProducts(String name) {
-
-        List<Product> products = productRepository.findByNameContainingIgnoreCase(name);
-
-        if(products.isEmpty()) {
-            throw new ProductNotFoundException(
-                    "No products found with name: " + name);
+            return productRepository.findByNameContainingIgnoreCase(name)
+                    .stream()
+                    .map(ProductMapper::toDto)
+                    .toList();
         }
 
-        return products;
-    }
+        @Override
+        public List<ProductResponseDto> getTopRated() {
 
-    @Override
-    public List<Product> getProductsByPriceRange(double min, double max) {
-
-        if(min < 0 || max <= 0) {
-            throw new InvalidProductException("Invalid price range");
+            return productRepository.findTop10ByOrderByRatingDesc()
+                    .stream()
+                    .map(ProductMapper::toDto)
+                    .toList();
         }
 
-        List<Product> products = productRepository.findByPriceBetween(min, max);
+        @Override
+        public List<ProductResponseDto> getActiveProducts() {
 
-        if(products.isEmpty()) {
-            throw new ProductNotFoundException("No products found in price range");
+            return productRepository.findByActiveTrue()
+                    .stream()
+                    .map(ProductMapper::toDto)
+                    .toList();
         }
 
-        return products;
-    }
+        @Override
+        public ProductResponseDto updateProduct(Long id, ProductRequestDto dto) {
 
-    @Override
-    public List<Product> getTopRatedProducts() {
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() ->
+                            new ProductNotFoundException("Product not found: " + id));
 
-        List<Product> products = productRepository.findTop10ByOrderByRatingDesc();
+            product.setName(dto.getName());
+            product.setCategory(dto.getCategory());
+            product.setBrand(dto.getBrand());
+            product.setPrice(dto.getPrice());
+            product.setDiscount(dto.getDiscount());
+            product.setAttributes(dto.getAttributes());
+            product.setImages(dto.getImages());
+            product.setUpdatedAt(LocalDateTime.now());
 
-        if(products.isEmpty()) {
-            throw new ProductNotFoundException("No rated products available");
+            return ProductMapper.toDto(productRepository.save(product));
         }
 
-        return products;
-    }
+        @Override
+        public void deleteProduct(Long id) {
 
-    @Override
-    public void deactivateProduct(Long id) {
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() ->
+                            new ProductNotFoundException("Product not found: " + id));
 
-        Product product = productRepository.findById(id)
-                .orElseThrow(() ->
-                        new ProductNotFoundException("Product not found with id: " + id));
-
-        product.setActive(false);
-
-        productRepository.save(product);
-    }
+            product.setActive(false); // soft delete
+            productRepository.save(product);
+        }
 
     @KafkaListener(topics = "add-to-cart", groupId = "product-group")
     public void consume(AddToCartEvent event) {
@@ -203,7 +181,7 @@ public class ProductServiceImpl implements ProductService {
             return;
         }
 
-        // ✅ product exists → call Inventory via Kafka
+
         InventoryCheckEvent inventoryEvent = new InventoryCheckEvent();
         inventoryEvent.setProductId(event.getProductId());
         inventoryEvent.setQuantity(event.getQuantity());
