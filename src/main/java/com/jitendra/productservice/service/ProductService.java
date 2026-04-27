@@ -9,7 +9,7 @@ public interface ProductService {
 
     ProductResponseDto createProduct(ProductRequestDto dto)throws ExecutionException, InterruptedException ;
 
-    ProductResponseDto getProductById(Long id);
+    ProductResponseDto getProductById(String id);
 
     List<ProductResponseDto> getAllProducts();
 
@@ -23,7 +23,7 @@ public interface ProductService {
 
     List<ProductResponseDto> getActiveProducts();
 
-    ProductResponseDto updateProduct(Long id, ProductRequestDto dto);
+    ProductResponseDto updateProduct(String id, ProductRequestDto dto);
 
-    void deleteProduct(Long id);
+    void deleteProduct(String id);
 }

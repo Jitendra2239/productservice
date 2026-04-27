@@ -21,7 +21,7 @@ public class KafkaConfig {
 
         ContainerProperties containerProperties =
                 new ContainerProperties("inventory-created");
-
+        containerProperties.setGroupId("product-group");
         return new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
     }
     @Bean

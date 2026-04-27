@@ -75,7 +75,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
         @Override
-        public ProductResponseDto getProductById(Long id) {
+        public ProductResponseDto getProductById(String id) {
 
             Product product = productRepository.findById(id)
                     .orElseThrow(() ->
@@ -139,7 +139,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         @Override
-        public ProductResponseDto updateProduct(Long id, ProductRequestDto dto) {
+        public ProductResponseDto updateProduct(String id, ProductRequestDto dto) {
 
             Product product = productRepository.findById(id)
                     .orElseThrow(() ->
@@ -158,7 +158,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         @Override
-        public void deleteProduct(Long id) {
+        public void deleteProduct(String id) {
 
             Product product = productRepository.findById(id)
                     .orElseThrow(() ->

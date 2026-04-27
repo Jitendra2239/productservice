@@ -7,6 +7,7 @@ import com.jitendra.productservice.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,7 +19,7 @@ import java.util.concurrent.ExecutionException;
 public class ProductController {
 
     private final ProductService productService;
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ProductResponseDto> createProduct(
              @RequestBody ProductRequestDto dto) throws ExecutionException, InterruptedException {
@@ -30,7 +31,7 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponseDto> getProductById(
-            @PathVariable Long id) {
+            @PathVariable String id) {
 
         return ResponseEntity.ok(productService.getProductById(id));
     }
@@ -80,18 +81,18 @@ public class ProductController {
         return ResponseEntity.ok(productService.getActiveProducts());
     }
 
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponseDto> updateProduct(
-            @PathVariable Long id,
+            @PathVariable String id,
            @RequestBody ProductRequestDto dto) {
 
         return ResponseEntity.ok(productService.updateProduct(id, dto));
     }
 
-
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<String> deleteProduct(@PathVariable String id) {
 
         productService.deleteProduct(id);
         return ResponseEntity.ok("Product deleted successfully");
